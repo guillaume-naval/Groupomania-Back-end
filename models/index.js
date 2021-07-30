@@ -5,6 +5,8 @@ const sequelize = require("../utils/database");
 User.hasMany(Post);
 Post.belongsTo(User);
 
+
 sequelize.sync({ force: true });
 const db = { User, Post };
+
 module.exports = db;
