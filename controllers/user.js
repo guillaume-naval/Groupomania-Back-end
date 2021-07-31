@@ -1,16 +1,26 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
 const models = require('../models');
+const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const passRegex = /^(?=.*\d).{4,15}$/;
 
 exports.signup = (req, res, next) => {
     var email = req.body.email;
-    var username = req.body.username;
     var password = req.body.password;
+    var username = req.body.username;
     var bio = req.body.bio;
 
     if (email == null || username == null || password == null) {
-        return res.status(400).json({ 'error': 'un des champs est invalide' });
+        return res.status(400).json({ 'error': 'Un des champs est invalide' });
+    }
+    if (username.length >= 13 || username.length <= 4) {
+        return res.status(400).json({ 'error': 'Pseudo invalide (doit comporter 4 à 12 caractères)' });
+    }
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ 'error': "L'email n'est pas valide" });
+    }
+    if (!passRegex.test(password)) {
+        return res.status(400).json({ 'error': "Le mot de passe n'est pas valide (doit comporter 4 à 15 caractères et inclure au moins 1 chiffre)" });
     }
 
     models.User.findOne({
@@ -38,54 +48,77 @@ exports.signup = (req, res, next) => {
         })
 };
 
-exports.login = (req, res, next) => {
-    models.User.findOne({
-        attributes: ['email'],
-        where: { email: req.body.email }
-    })
-        .then(user => {
-            if (!user) {
-                return res.status(401).json({ error: 'Utilisateur non trouvé !' });
-            }
-            bcrypt.compare(req.body.password, user.password)
-                .then(valid => {
-                    if (!valid) {
-                        return res.status(401).json({ error: 'Mot de passe incorrect !' });
-                    }
-                    res.status(200).json({
-                        userId: userId,
-                        token: jwt.sign(
-                            { userId: userId },
-                            'RANDOM_TOKEN_SECRET',
-                            { expiresIn: '24h' }
-                        )
-                    });
-                })
-                .catch(error => res.status(500).json({ error }));
+exports.login = (req, res) => {
+    var email = req.body.email;
+    var password = req.body.password;
+    if (email == null || password == null) {
+        return res.status(400).json({ 'error': 'un des champs est invalide' });
+    } else {
+        models.User.findOne({
+            where: { email: email }
         })
-        .catch(error => res.status(500).json({ error }));
+            .then(userFound => {
+                if (!userFound) {
+                    return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+                } else {
+                    bcrypt.compare(req.body.password, userFound.password)
+                        .then(valid => {
+                            if (!valid) {
+                                return res.status(401).json({ error: 'Mot de passe incorrect !' });
+                            }
+
+                            res.status(200).json({
+                                userId: userFound.id,
+                                token: jwt.sign(
+                                    { userId: userFound.id },
+                                    'RANDOM_TOKEN_SECRET',
+                                    { expiresIn: '24h' }
+                                )
+                            });
+                        })
+                        .catch(error => res.status(500).json({ "error": "Login impossible" }));
+                }
+            })
+            .catch(error => res.status(500).json({ "error": "Impossible de vérifier l'utilisateur" }));
+    }
 };
 // Permet d'afficher un profil
-exports.userProfile = (req, res, next) => {
+exports.userProfile = (req, res) => {
     models.User.findOne({
-        where: { id: userId }
+        attributes: ['id', 'email', 'username', 'bio'],
+        where: { id: req.params.id }
     })
         .then(
-            (User) => {
+            (user) => {
                 res.status(200).json(user);
             }
-        ).catch(
-            (error) => {
-                res.status(404).json({
-                    error: error
-                });
-            }
-        );
+        )
+        .catch(error => res.status(401).json({ error: 'Utilisateur introuvable' }));
+};
+
+// Permet de modifier son profil
+exports.modifyProfile = (req, res) => {
+    var bio = req.body.bio;
+    models.User.findOne({
+        attributes: ['id', 'bio'],
+        where: { id: req.params.id }
+    })
+        .then(userFound => {
+            if (!userFound) {
+                return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+            } else {
+                userFound.update({
+                    bio: (bio ? bio : userFound.bio)
+                })
+                    .then(() => res.status(200).json({ message: 'Profil modifié !' }))
+                    .catch(error => res.status(400).json({ error }));
+            };
+        })
 };
 
 // Permet de supprimer le compte
-exports.deleteProfile = (req, res, next) => {
-    models.User.findOne({ _id: req.params.id })
+exports.deleteProfile = (req, res) => {
+    models.User.findOne({ id: req.params.id })
         .then(user => {
             if (user != null) {
                 models.Post.destroy({

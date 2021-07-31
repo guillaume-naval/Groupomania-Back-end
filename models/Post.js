@@ -1,16 +1,24 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require("../utils/database");
 
 const Post = sequelize.define("Post", {
     // Model attributes are defined here
+    title: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    content: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
     imageUrl: {
-        type: Sequelize.STRING,
-        allowNull: false
+        type: DataTypes.STRING,
+        allowNull: true
     },
-    body: {
-        type: Sequelize.TEXT,
-        allowNull: false
-    },
+    likes: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    }
 });
 
 module.exports = Post;
