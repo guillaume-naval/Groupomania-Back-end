@@ -6,7 +6,7 @@ User.hasMany(Post);
 Post.belongsTo(User);
 
 
-sequelize.sync({ force: true });
+sequelize.sync();
 const db = { User, Post };
 
 module.exports = db;
