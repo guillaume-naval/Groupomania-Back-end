@@ -2,25 +2,23 @@ const jwt = require('jsonwebtoken');
 const models = require('../models');
 const fs = require('fs');
 
-exports.createPost = (req, res) => {
-    var title = req.body.title;
+exports.createComment = (req, res) => {
     var content = req.body.content;
 
-    if (title == null || content == null) {
-        return res.status(400).json({ 'error': 'Un des champs est invalide' });
+    if (content == null) {
+        return res.status(400).json({ 'error': 'Le champs de texte est vide' });
     }
-    models.User.findOne({
-        where: { id: req.token.userId },
+    models.Post.findOne({
+        where: { id: req.params.postId },
     })
         .then(userFound => {
             if (!userFound) {
                 return res.status(401).json({ error: 'Utilisateur non trouvé !' });
             } else {
-                models.Post.create({
-                    title: title,
+                models.Comment.create({
                     content: content,
                     UserId: req.token.userId,
-                    imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null
+                    PostId: req.params.postId
                 })
                     .then(() => res.status(200).json({ message: 'Post publié !' }))
                     .catch((error) => res.status(400).json({ "error": "Impossible de créer le post" }));
@@ -28,27 +26,8 @@ exports.createPost = (req, res) => {
         })
         .catch(error => res.status(500).json({ "error": "Utilisateur invalide" }));
 };
-
-// Permet de modifier son profil
-exports.modifyPost = (req, res) => {
-    models.Post.findOne({
-        where: { id: req.params.id }
-    })
-        .then(postFound => {
-            if (!postFound) {
-                return res.status(401).json({ error: 'Post non trouvé !' });
-            } else {
-                postFound.update({
-                    ...req.body,
-                    imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : postFound.imageUrl
-                })
-                    .then(() => res.status(200).json({ message: 'Post modifié !' }))
-                    .catch(error => res.status(400).json({ error }));
-            }
-        })
-};
 // Permet de supprimer un post
-exports.deletePost = (req, res) => {
+exports.deleteComment = (req, res) => {
     models.Post.findOne({
         where: { id: req.params.id }
     }).then(post => {
@@ -65,30 +44,23 @@ exports.deletePost = (req, res) => {
     }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce post" }));
 }
 // Permet d'afficher un seul post
-exports.getOnePost = (req, res) => {
-    models.Post.findOne({
-        where: { id: req.params.id },
-        include: [{
-            model: models.User,
-            attributes: ['username']
-        }, {
-            model: models.Comment,
-            attributes: ['content', 'UserId']
-        }]
+exports.getOneComment = (req, res) => {
+    models.Comment.findOne({
+        where: { id: req.params.commentId, PostId: req.params.postId }
     })
         .then(
-            (post) => {
-                if (post) {
-                    res.status(200).json(post);
+            (comment) => {
+                if (comment) {
+                    res.status(200).json(comment);
                 } else {
-                    return res.status(401).json({ error: "Ce post n'existe pas" })
+                    return res.status(401).json({ error: "Ce commentaire n'existe pas" })
                 }
             }
         )
         .catch(error => res.status(401).json({ error: 'Post introuvable' }));
 };
 // Permet de récuperer tous les posts
-exports.getAllPosts = (req, res) => {
+exports.getAllComments = (req, res) => {
     var fields = req.query.fields;
     var limit = parseInt(req.query.limit);
     var offset = parseInt(req.query.offset);

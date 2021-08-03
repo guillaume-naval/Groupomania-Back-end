@@ -26,5 +26,3 @@ const User = sequelize.define("User", {
 });
 
 module.exports = User;
-// the defined model is the class itself
-console.log(User === sequelize.models.User); // true

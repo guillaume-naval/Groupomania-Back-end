@@ -6,7 +6,7 @@ const dotenv = require('dotenv').config();
 
 const userRoutes = require('./routes/user');
 const postRoutes = require('./routes/post');
-
+const commentRoutes = require('./routes/comment');
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
     host: process.env.DB_HOST,
     dialect: 'mysql'
@@ -33,5 +33,6 @@ app.use((req, res, next) => {
 
 app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/post', commentRoutes);
 
 module.exports = app;

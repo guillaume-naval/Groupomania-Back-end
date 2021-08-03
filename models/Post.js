@@ -22,5 +22,3 @@ const Post = sequelize.define("Post", {
 });
 
 module.exports = Post;
-// the defined model is the class itself
-console.log(Post === sequelize.models.Post); // true
