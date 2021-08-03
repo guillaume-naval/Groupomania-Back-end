@@ -11,37 +11,37 @@ exports.createComment = (req, res) => {
     models.Post.findOne({
         where: { id: req.params.postId },
     })
-        .then(userFound => {
-            if (!userFound) {
-                return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+        .then(post => {
+            if (!post) {
+                return res.status(401).json({ error: 'Post invalide !' });
             } else {
                 models.Comment.create({
                     content: content,
                     UserId: req.token.userId,
                     PostId: req.params.postId
                 })
-                    .then(() => res.status(200).json({ message: 'Post publié !' }))
-                    .catch((error) => res.status(400).json({ "error": "Impossible de créer le post" }));
+                    .then(() => res.status(200).json({ message: 'Commentaire publié !' }))
+                    .catch((error) => res.status(400).json({ "error": "Impossible de créer le commentaire" }));
             };
         })
-        .catch(error => res.status(500).json({ "error": "Utilisateur invalide" }));
+        .catch(error => res.status(500).json({ "error": "Post introuvable" }));
 };
 // Permet de supprimer un post
 exports.deleteComment = (req, res) => {
-    models.Post.findOne({
-        where: { id: req.params.id }
-    }).then(post => {
-        if (post != null) {
-            models.Post.destroy({
-                where: { id: req.params.id }
+    models.Comment.findOne({
+        where: { id: req.params.commentId }
+    }).then(comment => {
+        if (comment != null) {
+            models.Comment.destroy({
+                where: { id: req.params.commentId }
             })
-                .then(() => res.status(200).json({ message: 'Post supprimé !' }))
+                .then(() => res.status(200).json({ message: 'Commentaire supprimé !' }))
                 .catch(error => res.status(400).json({ error }));
         }
         else {
-            return res.status(401).json({ error: "Ce post n'existe pas" })
+            return res.status(401).json({ error: "Ce commentaire n'existe pas" })
         }
-    }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce post" }));
+    }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce commentaire" }));
 }
 // Permet d'afficher un seul post
 exports.getOneComment = (req, res) => {
@@ -57,7 +57,7 @@ exports.getOneComment = (req, res) => {
                 }
             }
         )
-        .catch(error => res.status(401).json({ error: 'Post introuvable' }));
+        .catch(error => res.status(401).json({ error: 'Requête impossible' }));
 };
 // Permet de récuperer tous les posts
 exports.getAllComments = (req, res) => {
@@ -69,8 +69,8 @@ exports.getAllComments = (req, res) => {
     if (limit > itemsLimit) {
         limit = itemsLimit;
     }
-    models.Post.findAll({
-        order: [(order != null) ? order.split(':') : ['title', 'ASC']],
+    models.Comment.findAll({
+        order: [(order != null) ? order.split(':') : ['createdAt', 'ASC']],
         attributes: (fields !== '*' && fields != null) ? fields.split(',') : null,
         limit: (!isNaN(limit)) ? limit : null,
         offset: (!isNaN(offset)) ? offset : null,
@@ -79,8 +79,8 @@ exports.getAllComments = (req, res) => {
             attributes: ['username']
         }]
     }).then(
-        (post) => {
-            res.status(200).json(post);
+        (comment) => {
+            res.status(200).json(comment);
         }
     ).catch(
         (error) => {
