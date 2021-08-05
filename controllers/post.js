@@ -36,12 +36,14 @@ exports.modifyPost = (req, res) => {
     const postId = req.params.postId;
     models.Post.findOne({
         where: { id: postId }
-    })
-        .then(postFound => {
+    }).then(postFound => {
+        models.User.findOne({
+            where: { id: req.token.userId }
+        }).then(function (userFound) {
             if (!postFound) {
                 return res.status(401).json({ error: 'Post non trouvé !' });
             } else {
-                if (postFound.UserId != req.token.userId) {
+                if (postFound.UserId != req.token.userId && !userFound.isAdmin) {
                     return res.status(401).json({ message: 'Vous ne pouvez pas modifier ce post' });
                 }
                 postFound.update({
@@ -52,6 +54,7 @@ exports.modifyPost = (req, res) => {
                     .catch(error => res.status(400).json({ error }));
             }
         })
+    }).catch(error => res.status(400).json({ error: "Impossible de modifier ce post" }));
 };
 // Permet de supprimer un post
 exports.deletePost = (req, res) => {
@@ -59,20 +62,25 @@ exports.deletePost = (req, res) => {
     models.Post.findOne({
         where: { id: postId }
     }).then(postToDelete => {
-        if (postToDelete != null) {
-            if (postToDelete.UserId != req.token.userId) {
-                return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce post' });
+        models.User.findOne({
+            where: { id: req.token.userId }
+        }).then(function (userFound) {
+            if (postToDelete != null) {
+                if (postToDelete.UserId != req.token.userId && !userFound.isAdmin) {
+                    return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce post' });
+                }
+                models.Post.destroy({
+                    where: { id: postId }
+                })
+                    .then(() => res.status(200).json({ message: 'Post supprimé !' }))
+                    .catch(error => res.status(400).json({ error }));
             }
-            models.Post.destroy({
-                where: { id: postId }
-            })
-                .then(() => res.status(200).json({ message: 'Post supprimé !' }))
-                .catch(error => res.status(400).json({ error }));
-        }
-        else {
-            return res.status(401).json({ error: "Ce post n'existe pas" })
-        }
-    })//.catch(error => res.status(400).json({ error: "Impossible de supprimer ce post" }));
+            else {
+                return res.status(401).json({ error: "Ce post n'existe pas" })
+            }
+        })
+
+    }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce post" }));
 }
 // Permet d'afficher un seul post
 exports.getOnePost = (req, res) => {

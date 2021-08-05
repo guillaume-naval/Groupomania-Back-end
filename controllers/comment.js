@@ -31,19 +31,23 @@ exports.deleteComment = (req, res) => {
     models.Comment.findOne({
         where: { id: req.params.commentId }
     }).then(commentToDelete => {
-        if (commentToDelete != null) {
-            if (commentToDelete.UserId != req.token.userId) {
-                return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce commentaire' });
+        models.User.findOne({
+            where: { id: req.token.userId }
+        }).then(function (userFound) {
+            if (commentToDelete != null) {
+                if (commentToDelete.UserId != req.token.userId && !userFound.isAdmin) {
+                    return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce commentaire' });
+                }
+                models.Comment.destroy({
+                    where: { id: req.params.commentId }
+                })
+                    .then(() => res.status(200).json({ message: 'Commentaire supprimé !' }))
+                    .catch(error => res.status(400).json({ error }));
             }
-            models.Comment.destroy({
-                where: { id: req.params.commentId }
-            })
-                .then(() => res.status(200).json({ message: 'Commentaire supprimé !' }))
-                .catch(error => res.status(400).json({ error }));
-        }
-        else {
-            return res.status(401).json({ error: "Ce commentaire n'existe pas" })
-        }
+            else {
+                return res.status(401).json({ error: "Ce commentaire n'existe pas" })
+            }
+        })
     }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce commentaire" }));
 }
 // Permet d'afficher un seul post

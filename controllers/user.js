@@ -121,10 +121,11 @@ exports.modifyProfile = (req, res) => {
 
 // Permet de supprimer le compte
 exports.deleteProfile = (req, res) => {
+    const userSignIn = req.token.userId;
     models.User.findOne({ id: req.params.id })
         .then(userFound => {
             if (userFound != null) {
-                if (userFound.UserId != req.token.userId) {
+                if (userFound.UserId != userSignIn && userSignIn.isAdmin) {
                     return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
                 }
                 models.Post.destroy({
