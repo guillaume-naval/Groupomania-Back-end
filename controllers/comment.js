@@ -30,8 +30,11 @@ exports.createComment = (req, res) => {
 exports.deleteComment = (req, res) => {
     models.Comment.findOne({
         where: { id: req.params.commentId }
-    }).then(comment => {
-        if (comment != null) {
+    }).then(commentToDelete => {
+        if (commentToDelete != null) {
+            if (commentToDelete.UserId != req.token.userId) {
+                return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce commentaire' });
+            }
             models.Comment.destroy({
                 where: { id: req.params.commentId }
             })

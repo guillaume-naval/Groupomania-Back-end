@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const models = require('../models');
 const fs = require('fs');
 
+
 exports.createPost = (req, res) => {
     var title = req.body.title;
     var content = req.body.content;
@@ -16,6 +17,7 @@ exports.createPost = (req, res) => {
             if (!userFound) {
                 return res.status(401).json({ error: 'Utilisateur non trouvé !' });
             } else {
+
                 models.Post.create({
                     title: title,
                     content: content,
@@ -31,13 +33,17 @@ exports.createPost = (req, res) => {
 
 // Permet de modifier son profil
 exports.modifyPost = (req, res) => {
+    const postId = req.params.postId;
     models.Post.findOne({
-        where: { id: req.params.id }
+        where: { id: postId }
     })
         .then(postFound => {
             if (!postFound) {
                 return res.status(401).json({ error: 'Post non trouvé !' });
             } else {
+                if (postFound.UserId != req.token.userId) {
+                    return res.status(401).json({ message: 'Vous ne pouvez pas modifier ce post' });
+                }
                 postFound.update({
                     ...req.body,
                     imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : postFound.imageUrl
@@ -49,12 +55,16 @@ exports.modifyPost = (req, res) => {
 };
 // Permet de supprimer un post
 exports.deletePost = (req, res) => {
+    const postId = req.params.postId;
     models.Post.findOne({
-        where: { id: req.params.id }
-    }).then(post => {
-        if (post != null) {
+        where: { id: postId }
+    }).then(postToDelete => {
+        if (postToDelete != null) {
+            if (postToDelete.UserId != req.token.userId) {
+                return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce post' });
+            }
             models.Post.destroy({
-                where: { id: req.params.id }
+                where: { id: postId }
             })
                 .then(() => res.status(200).json({ message: 'Post supprimé !' }))
                 .catch(error => res.status(400).json({ error }));
@@ -62,12 +72,13 @@ exports.deletePost = (req, res) => {
         else {
             return res.status(401).json({ error: "Ce post n'existe pas" })
         }
-    }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce post" }));
+    })//.catch(error => res.status(400).json({ error: "Impossible de supprimer ce post" }));
 }
 // Permet d'afficher un seul post
 exports.getOnePost = (req, res) => {
+    const postId = req.params.postId;
     models.Post.findOne({
-        where: { id: req.params.id },
+        where: { id: postId },
         include: [{
             model: models.User,
             attributes: ['username']

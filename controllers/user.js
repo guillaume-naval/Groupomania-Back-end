@@ -107,6 +107,9 @@ exports.modifyProfile = (req, res) => {
             if (!userFound) {
                 return res.status(401).json({ error: 'Utilisateur non trouvé !' });
             } else {
+                if (userFound.UserId != req.token.userId) {
+                    return res.status(401).json({ message: 'Vous ne pouvez pas modifier ce profil' });
+                }
                 userFound.update({
                     bio: (bio ? bio : userFound.bio)
                 })
@@ -119,8 +122,11 @@ exports.modifyProfile = (req, res) => {
 // Permet de supprimer le compte
 exports.deleteProfile = (req, res) => {
     models.User.findOne({ id: req.params.id })
-        .then(user => {
-            if (user != null) {
+        .then(userFound => {
+            if (userFound != null) {
+                if (userFound.UserId != req.token.userId) {
+                    return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
+                }
                 models.Post.destroy({
                     where: { userId: user.id }
                 })
