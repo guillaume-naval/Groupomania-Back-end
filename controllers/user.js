@@ -99,6 +99,19 @@ exports.userProfile = (req, res) => {
 // Permet de modifier son profil
 exports.modifyProfile = (req, res) => {
     var bio = req.body.bio;
+    var email = req.body.email;
+    var password = req.body.password;
+    var username = req.body.username;
+
+    if (username.length >= 13 || username.length <= 4) {
+        return res.status(400).json({ 'error': 'Pseudo invalide (doit comporter 4 à 12 caractères)' });
+    }
+    if (!emailRegex.test(email) && email != null) {
+        return res.status(400).json({ 'error': "L'email n'est pas valide" });
+    }
+    if (!passRegex.test(password) && password != null) {
+        return res.status(400).json({ 'error': "Le mot de passe n'est pas valide (doit comporter 4 à 15 caractères et inclure au moins 1 chiffre)" });
+    }
     models.User.findOne({
         attributes: ['id', 'bio'],
         where: { id: req.params.id }
@@ -107,16 +120,22 @@ exports.modifyProfile = (req, res) => {
             if (!userFound) {
                 return res.status(401).json({ error: 'Utilisateur non trouvé !' });
             } else {
-                if (userFound.UserId != req.token.userId) {
+                if (userFound.id != req.token.userId) {
                     return res.status(401).json({ message: 'Vous ne pouvez pas modifier ce profil' });
                 }
-                userFound.update({
-                    bio: (bio ? bio : userFound.bio)
+                bcrypt.hash(req.body.password, 10, function (err, bcryptedPassword) {
+                    userFound.update({
+                        email: email ? email : userFound.email,
+                        username: (username ? username : userFound.username),
+                        password: bcryptedPassword,
+                        bio: (bio ? bio : userFound.bio)
+                    })
                 })
-                    .then(() => res.status(200).json({ message: 'Profil modifié !' }))
-                    .catch(error => res.status(400).json({ error }));
-            };
+            }
         })
+
+        .then(() => res.status(200).json({ message: 'Profil modifié !' }))
+        .catch(error => res.status(400).json({ error }));
 };
 
 // Permet de supprimer le compte
