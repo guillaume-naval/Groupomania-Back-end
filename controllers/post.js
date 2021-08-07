@@ -93,6 +93,8 @@ exports.getOnePost = (req, res) => {
         }, {
             model: models.Comment,
             attributes: ['content', 'UserId']
+        }, {
+            model: models.React
         }]
     })
         .then(

@@ -26,7 +26,7 @@ exports.createComment = (req, res) => {
         })
         .catch(error => res.status(500).json({ "error": "Post introuvable" }));
 };
-// Permet de supprimer un post
+// Permet de supprimer un commentaire
 exports.deleteComment = (req, res) => {
     models.Comment.findOne({
         where: { id: req.params.commentId }
@@ -50,7 +50,7 @@ exports.deleteComment = (req, res) => {
         })
     }).catch(error => res.status(400).json({ error: "Impossible de supprimer ce commentaire" }));
 }
-// Permet d'afficher un seul post
+// Permet d'afficher un seul commentaire
 exports.getOneComment = (req, res) => {
     models.Comment.findOne({
         where: { id: req.params.commentId, PostId: req.params.postId }
@@ -66,7 +66,7 @@ exports.getOneComment = (req, res) => {
         )
         .catch(error => res.status(401).json({ error: 'Requête impossible' }));
 };
-// Permet de récuperer tous les posts
+// Permet de récuperer tous les commentaires
 exports.getAllComments = (req, res) => {
     var fields = req.query.fields;
     var limit = parseInt(req.query.limit);
