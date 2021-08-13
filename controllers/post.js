@@ -97,14 +97,7 @@ exports.getOnePost = (req, res) => {
     const postId = req.params.postId;
     models.Post.findOne({
         where: { id: postId },
-        include: [{
-            model: models.User,
-            attributes: ['username']
-        }, {
-            model: models.Comment
-        }, {
-            model: models.React
-        }]
+        include: { all:true, nested:true} 
     })
         .then(
             (post) => {
