@@ -69,6 +69,8 @@ exports.login = (req, res) => {
 
                             res.status(200).json({
                                 userId: userFound.id,
+                                username :userFound.username,
+                                isAdmin :userFound.isAdmin,
                                 token: jwt.sign(
                                     { userId: userFound.id },
                                     'RANDOM_TOKEN_SECRET',
@@ -85,7 +87,7 @@ exports.login = (req, res) => {
 // Permet d'afficher un profil
 exports.userProfile = (req, res) => {
     models.User.findOne({
-        attributes: ['id', 'email', 'username', 'bio'],
+        attributes: ['id', 'email', 'username', 'bio', 'createdAt','isAdmin'],
         where: { id: req.params.id }
     })
         .then(
@@ -133,7 +135,6 @@ exports.modifyProfile = (req, res) => {
                 })
             }
         })
-
         .then(() => res.status(200).json({ message: 'Profil modifié !' }))
         .catch(error => res.status(400).json({ error }));
 };
@@ -148,13 +149,13 @@ exports.deleteProfile = (req, res) => {
                     return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
                 }
                 models.Post.destroy({
-                    where: { userId: user.id }
+                    where: { userId: userSignIn }
                 })
                 models.User.destroy({
-                    where: { id: user.id }
+                    where: { id: userSignIn }
                 })
                     .then(() => res.status(200).json({ message: 'Compte supprimé !' }))
-                    .catch(error => res.status(400).json({ error }));
+                    //.catch(error => res.status(400).json({ error }));
             }
             else {
                 res.status(401).json({ error: "Cet user n'existe pas" })
