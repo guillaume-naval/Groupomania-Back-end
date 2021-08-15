@@ -33,6 +33,7 @@ exports.createPost = (req, res) => {
 // Permet de modifier son profil
 exports.modifyPost = (req, res) => {
     const postId = req.params.postId;
+
     models.Post.findOne({
         where: { id: postId }
     }).then(postFound => {
