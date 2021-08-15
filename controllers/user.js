@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const models = require('../models');
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const passRegex = /^(?=.*\d).{4,15}$/;
-
+//Permet l'inscription
 exports.signup = (req, res, next) => {
     var email = req.body.email;
     var password = req.body.password;
@@ -47,7 +47,7 @@ exports.signup = (req, res, next) => {
             }
         })
 };
-
+//Permet de se connecter
 exports.login = (req, res) => {
     var email = req.body.email;
     var password = req.body.password;
@@ -145,20 +145,21 @@ exports.modifyProfile = (req, res) => {
 // Permet de supprimer le compte
 exports.deleteProfile = (req, res) => {
     const userSignIn = req.token.userId;
-    models.User.findOne({ id: req.params.id })
-        .then(userFound => {
+    models.User.findOne({
+       where:{ id: req.params.id }
+    }).then(userFound => {
             if (userFound != null) {
-                if (userFound.UserId != userSignIn && !userFound.isAdmin) {
+                if (userFound.UserId != req.token.userId && !userFound.isAdmin) {
                     return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
                 }
                 models.Post.destroy({
-                    where: { userId: userSignIn }
+                    where: { userId: userFound }
                 })
                 models.User.destroy({
-                    where: { id: userSignIn }
+                    where: { id: userFound }
                 })
                     .then(() => res.status(200).json({ message: 'Compte supprimé !' }))
-                    //.catch(error => res.status(400).json({ error }));
+                    .catch(error => res.status(400).json({ error }));
             }
             else {
                 res.status(401).json({ error: "Cet user n'existe pas" })

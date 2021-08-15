@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const models = require('../models');
 const fs = require('fs');
 
-
+// Permet de créer son profil
 exports.createPost = (req, res) => {
 
     var content = req.body.content;

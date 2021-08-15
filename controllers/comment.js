@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const models = require('../models');
 const fs = require('fs');
-
+// Permet de créer un commentaire
 exports.createComment = (req, res) => {
     var content = req.body.content;
 
