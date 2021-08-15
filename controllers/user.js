@@ -127,13 +127,13 @@ exports.modifyProfile = (req, res) => {
                 if (userFound.id != req.token.userId) {
                     return res.status(401).json({ message: 'Vous ne pouvez pas modifier ce profil' });
                 }
-                bcrypt.hash(req.body.password, 10, function (err, bcryptedPassword) {
+                bcrypt.hash(password, 10, function (err, bcryptedPassword) {
                     userFound.update({
                         email: (email ? email : userFound.email),
                         username: (username ? username : userFound.username),
-                        password: bcryptedPassword,
+                        password:(password ? bcryptedPassword : userFound.password),
                         bio: (bio ? bio : userFound.bio),
-                        imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null
+                        imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : userFound.imageUrl
                     })
                 })
             }
