@@ -15,6 +15,10 @@ const User = sequelize.define("User", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    imageUrl: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     bio: {
         type: DataTypes.TEXT,
         allowNull: true

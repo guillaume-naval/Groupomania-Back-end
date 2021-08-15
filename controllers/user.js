@@ -8,7 +8,6 @@ exports.signup = (req, res, next) => {
     var email = req.body.email;
     var password = req.body.password;
     var username = req.body.username;
-    var bio = req.body.bio;
 
     if (email == null || username == null || password == null) {
         return res.status(400).json({ 'error': 'Un des champs est invalide' });
@@ -34,8 +33,9 @@ exports.signup = (req, res, next) => {
                         email: email,
                         username: username,
                         password: bcryptedPassword,
-                        bio: bio,
-                        isAdmin: false
+                        bio: "Vide",
+                        isAdmin: false,
+                        imageUrl:"http://localhost:3000/images/default300x300.jpg",
                     })
                         .then(function (newUser) {
                             return res.status(201).json({ 'userId': newUser.id })
@@ -87,7 +87,7 @@ exports.login = (req, res) => {
 // Permet d'afficher un profil
 exports.userProfile = (req, res) => {
     models.User.findOne({
-        attributes: ['id', 'email', 'username', 'bio', 'createdAt','isAdmin'],
+        attributes: ['id', 'email', 'username', 'bio', 'createdAt','isAdmin','imageUrl'],
         where: { id: req.params.id }
     })
         .then(
@@ -104,9 +104,10 @@ exports.modifyProfile = (req, res) => {
     var email = req.body.email;
     var password = req.body.password;
     var username = req.body.username;
-
-    if (username.length >= 13 || username.length <= 4) {
-        return res.status(400).json({ 'error': 'Pseudo invalide (doit comporter 4 à 12 caractères)' });
+    if(username!= null){
+        if (username.length >= 13 || username.length <= 4) {
+            return res.status(400).json({ 'error': 'Pseudo invalide (doit comporter 4 à 12 caractères)' });
+        }
     }
     if (!emailRegex.test(email) && email != null) {
         return res.status(400).json({ 'error': "L'email n'est pas valide" });
@@ -145,7 +146,7 @@ exports.deleteProfile = (req, res) => {
     models.User.findOne({ id: req.params.id })
         .then(userFound => {
             if (userFound != null) {
-                if (userFound.UserId != userSignIn && userSignIn.isAdmin) {
+                if (userFound.UserId != userSignIn && !userFound.isAdmin) {
                     return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
                 }
                 models.Post.destroy({

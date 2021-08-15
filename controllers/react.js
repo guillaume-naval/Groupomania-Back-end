@@ -27,7 +27,8 @@ exports.createReact = (req, res) => {
 // Permet de supprimer une réaction
 exports.deleteReact = (req, res) => {
     models.React.findOne({
-        where: { id: req.params.reactId }
+        where: { id: req.params.reactId },
+        include: { all:true, nested:true} 
     }).then(ReactToDelete => {
         models.User.findOne({
             where: { id: req.token.userId }
@@ -52,7 +53,8 @@ exports.deleteReact = (req, res) => {
 // Permet d'afficher les réactions d'un post
 exports.getOneReact = (req, res) => {
     models.React.findOne({
-        where: { id: req.params.reactId, PostId: req.params.postId }
+        where: { id: req.params.reactId, PostId: req.params.postId },
+        include: { all:true, nested:true} 
     })
         .then(
             (react) => {
@@ -80,10 +82,7 @@ exports.getAllReacts = (req, res) => {
         attributes: (fields !== '*' && fields != null) ? fields.split(',') : null,
         limit: (!isNaN(limit)) ? limit : null,
         offset: (!isNaN(offset)) ? offset : null,
-        include: [{
-            model: models.User,
-            attributes: ['username']
-        }]
+        include: { all:true, nested:true} 
     }).then(
         (react) => {
             res.status(200).json(react);
