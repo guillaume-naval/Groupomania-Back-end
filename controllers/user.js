@@ -144,25 +144,30 @@ exports.modifyProfile = (req, res) => {
 
 // Permet de supprimer le compte
 exports.deleteProfile = (req, res) => {
-    const userSignIn = req.token.userId;
+    
     models.User.findOne({
-       where:{ id: req.params.id }
-    }).then(userFound => {
-            if (userFound != null) {
-                if (userFound.UserId != req.token.userId && !userFound.isAdmin) {
-                    return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
+        where:{ id: req.token.userId }
+    })
+    .then(userSignIn => {
+        models.User.findOne({
+            where:{ id: req.params.id }})
+            .then(userFound => {
+                if (userFound != null) {
+                    if (userFound.id != userSignIn.id && !userSignIn.isAdmin) {
+                        return res.status(401).json({ message: 'Vous ne pouvez pas supprimer ce profil' });
+                    }
+                    models.Post.destroy({
+                        where: { userId: userFound.id }
+                    })
+                    models.User.destroy({
+                        where: { id: userFound.id }
+                    })
+                        .then(() => res.status(200).json({ message: 'Compte supprimé !' }))
+                        .catch(error => res.status(400).json({ error }));
                 }
-                models.Post.destroy({
-                    where: { userId: userFound }
-                })
-                models.User.destroy({
-                    where: { id: userFound }
-                })
-                    .then(() => res.status(200).json({ message: 'Compte supprimé !' }))
-                    .catch(error => res.status(400).json({ error }));
-            }
-            else {
-                res.status(401).json({ error: "Cet user n'existe pas" })
-            }
-        })
-}
+                else {
+                    res.status(401).json({ error: "Cet user n'existe pas" })
+                }
+            })
+    })
+};
