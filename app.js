@@ -15,7 +15,7 @@ const sequelize = new Sequelize(
   process.env.DB_USER,
   process.env.DB_PASS,
   {
-    host: "localhost",
+    host: "us-cdbr-east-04.cleardb.com",
     dialect: "mysql",
   }
 );
