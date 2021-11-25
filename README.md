@@ -1,6 +1,8 @@
 # GROUPOMANIA
 Le projet est un réseau social interne pour les employés de Groupomania. Le but de cet outil est de faciliter les interactions entre collègues. Le département RH de Groupomania a laissé libre cours à son imagination pour les fonctionnalités du réseau et a imaginé plusieurs briques pour favoriser les échanges entre collègues. <a href="https://s3-eu-west-1.amazonaws.com/course.oc-static.com/projects/DWJ_FR_P7/Groupomania_Specs_FR_DWJ_VF.pdf">Voici les fonctionnalités demandés. </a>
 
+:point_right: <a href="https://github.com/guillaume-naval/Groupomania-Front-end">Ici se trouve le front-end du projet </a> 
+
 ## INSTRUCTIONS 
 
 * Il vous faudra avoir installé sur votre machine:
